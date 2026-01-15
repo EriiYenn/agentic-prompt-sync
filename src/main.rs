@@ -3,6 +3,7 @@ mod checksum;
 mod cli;
 mod commands;
 mod error;
+mod git;
 mod install;
 mod lockfile;
 mod manifest;
@@ -44,5 +45,5 @@ fn main() -> Result<()> {
     };
 
     // Convert our error type to miette for nice display
-    result.map_err(|e| miette::miette!("{:?}", e))
+    result.map_err(|e| e.into())
 }
