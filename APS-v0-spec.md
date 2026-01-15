@@ -15,11 +15,11 @@ This document defines the **v0 specification** for **APS (Agentic Prompt Sync)**
 | 4 | Filesystem Source + `agents_md` | ✅ Complete |
 | 5 | Conflict Handling | ✅ Complete |
 | 6 | Lockfile + `aps status` | ✅ Complete |
-| 7 | Directory Install (`cursor_rules`) | ⏳ Pending |
-| 8 | Skills Root Adapter | ⏳ Pending |
-| 9 | Git Source (Read-only) | ⏳ Pending |
-| 10 | Git Source Install | ⏳ Pending |
-| 11 | Polish | ⏳ Pending |
+| 7 | Directory Install (`cursor_rules`) | ✅ Complete |
+| 8 | Skills Root Adapter | ✅ Complete |
+| 9 | Git Source (Read-only) | ✅ Complete |
+| 10 | Git Source Install | ✅ Complete |
+| 11 | Polish | ✅ Complete |
 
 ### Project Structure
 
@@ -31,6 +31,7 @@ src/
 ├── manifest.rs   # Manifest types, discovery, and validation
 ├── lockfile.rs   # Lockfile types and I/O
 ├── install.rs    # Asset installation logic
+├── git.rs        # Git clone, fetch, and ref resolution
 ├── backup.rs     # Backup creation for conflict handling
 ├── checksum.rs   # SHA256 checksum computation
 └── error.rs      # Error types with miette diagnostics
@@ -311,32 +312,41 @@ Each checkpoint results in a working CLI.
 
 ---
 
-### Checkpoint 7 — Directory Install (`cursor_rules`) ⏳ PENDING
-- Recursive copy
-- Conflict detection
-- Checksums
+### Checkpoint 7 — Directory Install (`cursor_rules`) ✅ COMPLETE
+- Recursive directory copy with structure preservation
+- Conflict detection for non-empty directories
+- SHA256 checksums for directories (sorted paths + content)
 
-**Note:** Basic directory copy is implemented but needs cursor_rules-specific handling.
+**Implementation:** `src/install.rs::copy_directory()`, `src/checksum.rs`
 
-### Checkpoint 8 — Skills Root Adapter ⏳ PENDING
-- Skill folder fan-out
-- `SKILL.md` warnings
-- `--strict` enforcement
+### Checkpoint 8 — Skills Root Adapter ✅ COMPLETE
+- Immediate child directories treated as skills
+- Warning if `SKILL.md` is missing (case-sensitive)
+- `--strict` flag turns warnings into errors
 
-### Checkpoint 9 — Git Source (Read-only) ⏳ PENDING
-- Clone/fetch
-- Ref auto-resolution
-- Path existence validation
+**Implementation:** `src/install.rs::validate_skills_root()`, `src/cli.rs::PullArgs::strict`
 
-### Checkpoint 10 — Git Source Install ⏳ PENDING
-- Install all asset kinds from git
-- Record resolved refs + commits
-- No-op pulls
+### Checkpoint 9 — Git Source (Read-only) ✅ COMPLETE
+- Clone via libgit2 with SSH and HTTPS support
+- Ref auto-resolution (`auto` → try `main`, then `master`)
+- Shallow clone support for remote repositories
 
-### Checkpoint 11 — Polish ⏳ PENDING
-- `--only` support
-- Improved UX messages
-- Interactive manifest confirmation
+**Implementation:** `src/git.rs::clone_and_resolve()`, `clone_with_ref_fallback()`
+
+### Checkpoint 10 — Git Source Install ✅ COMPLETE
+- Install all asset kinds (agents_md, cursor_rules, cursor_skills_root) from git
+- Record resolved ref name and commit SHA in lockfile
+- Checksum-based no-op detection (idempotent pulls)
+
+**Implementation:** `src/install.rs::resolve_source()`, `src/lockfile.rs::LockedEntry::new_git()`
+
+### Checkpoint 11 — Polish ✅ COMPLETE
+- `--only <id>` filter to pull specific entries
+- Interactive manifest confirmation prompt (TTY-aware)
+- Improved summary messages with warning counts
+- Git source validation in `aps validate`
+
+**Implementation:** `src/commands.rs::cmd_pull()`, `cmd_validate()`
 
 ---
 

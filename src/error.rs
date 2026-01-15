@@ -80,6 +80,31 @@ pub enum ApsError {
         help("Run `aps pull` first to create a lockfile")
     )]
     LockfileNotFound,
+
+    #[error("Skill '{skill_name}' is missing SKILL.md")]
+    #[diagnostic(
+        code(aps::skill::missing_skill_md),
+        help("Add a SKILL.md file to the skill directory, or remove --strict to continue with warnings")
+    )]
+    MissingSkillMd { skill_name: String },
+
+    #[error("Git operation failed: {message}")]
+    #[diagnostic(code(aps::git::error))]
+    GitError { message: String },
+
+    #[error("Git ref not found: tried {refs:?}")]
+    #[diagnostic(
+        code(aps::git::ref_not_found),
+        help("Specify a valid ref in the manifest, or ensure 'main' or 'master' branch exists")
+    )]
+    GitRefNotFound { refs: Vec<String> },
+
+    #[error("Entry not found: {id}")]
+    #[diagnostic(
+        code(aps::manifest::entry_not_found),
+        help("Check the entry ID in your manifest")
+    )]
+    EntryNotFound { id: String },
 }
 
 impl ApsError {

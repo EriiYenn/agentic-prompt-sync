@@ -1,17 +1,19 @@
 use crate::backup::{create_backup, has_conflict};
 use crate::checksum::compute_source_checksum;
 use crate::error::{ApsError, Result};
+use crate::git::{clone_and_resolve, ResolvedGitSource};
 use crate::lockfile::{LockedEntry, Lockfile};
 use crate::manifest::{AssetKind, Entry, Manifest, Source};
 use dialoguer::Confirm;
 use std::io::IsTerminal;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tracing::{debug, info};
 
 /// Options for the install operation
 pub struct InstallOptions {
     pub dry_run: bool,
     pub yes: bool,
+    pub strict: bool,
 }
 
 /// Result of an install operation
@@ -19,9 +21,28 @@ pub struct InstallResult {
     pub id: String,
     pub installed: bool,
     pub skipped_no_change: bool,
-    #[allow(dead_code)] // Used for reporting in future checkpoints
     pub backed_up: bool,
     pub locked_entry: Option<LockedEntry>,
+    pub warnings: Vec<String>,
+}
+
+/// Resolved source information
+struct ResolvedSource {
+    /// Path to the actual source content
+    source_path: PathBuf,
+    /// Display name for the source
+    source_display: String,
+    /// Git-specific info (if applicable)
+    git_info: Option<GitInfo>,
+    /// Keep the temp dir alive for git sources
+    #[allow(dead_code)]
+    _temp_holder: Option<ResolvedGitSource>,
+}
+
+/// Git-specific resolution info
+struct GitInfo {
+    resolved_ref: String,
+    commit_sha: String,
 }
 
 /// Install all entries from a manifest
@@ -50,17 +71,19 @@ pub fn install_entry(
 ) -> Result<InstallResult> {
     info!("Processing entry: {}", entry.id);
 
-    // Resolve source path
-    let source_path = resolve_source_path(&entry.source, &entry.path, manifest_dir)?;
-    debug!("Source path: {:?}", source_path);
+    // Resolve source (handles both filesystem and git)
+    let resolved = resolve_source(&entry.source, &entry.path, manifest_dir)?;
+    debug!("Source path: {:?}", resolved.source_path);
 
     // Verify source exists
-    if !source_path.exists() {
-        return Err(ApsError::SourcePathNotFound { path: source_path });
+    if !resolved.source_path.exists() {
+        return Err(ApsError::SourcePathNotFound {
+            path: resolved.source_path,
+        });
     }
 
     // Compute checksum
-    let checksum = compute_source_checksum(&source_path)?;
+    let checksum = compute_source_checksum(&resolved.source_path)?;
     debug!("Source checksum: {}", checksum);
 
     // Check if content is unchanged (no-op)
@@ -72,6 +95,7 @@ pub fn install_entry(
             skipped_no_change: true,
             backed_up: false,
             locked_entry: None,
+            warnings: Vec::new(),
         });
     }
 
@@ -117,20 +141,39 @@ pub fn install_entry(
         }
     }
 
+    // Validate skills if this is a skills root
+    let mut warnings = Vec::new();
+    if entry.kind == AssetKind::CursorSkillsRoot {
+        warnings = validate_skills_root(&resolved.source_path, options.strict)?;
+        for warning in &warnings {
+            println!("Warning: {}", warning);
+        }
+    }
+
     // Perform the install
     if options.dry_run {
         println!("[dry-run] Would install {} to {:?}", entry.id, dest_path);
     } else {
-        install_asset(&entry.kind, &source_path, &dest_path)?;
+        install_asset(&entry.kind, &resolved.source_path, &dest_path)?;
         println!("Installed {} to {:?}", entry.id, dest_path);
     }
 
-    // Create locked entry
-    let locked_entry = LockedEntry::new_filesystem(
-        &entry.source.display_name(),
-        &dest_path.to_string_lossy(),
-        checksum,
-    );
+    // Create locked entry based on source type
+    let locked_entry = if let Some(git_info) = &resolved.git_info {
+        LockedEntry::new_git(
+            &resolved.source_display,
+            &dest_path.to_string_lossy(),
+            git_info.resolved_ref.clone(),
+            git_info.commit_sha.clone(),
+            checksum,
+        )
+    } else {
+        LockedEntry::new_filesystem(
+            &resolved.source_display,
+            &dest_path.to_string_lossy(),
+            checksum,
+        )
+    };
 
     Ok(InstallResult {
         id: entry.id.clone(),
@@ -138,23 +181,47 @@ pub fn install_entry(
         skipped_no_change: false,
         backed_up,
         locked_entry: Some(locked_entry),
+        warnings,
     })
 }
 
-/// Resolve the source path based on source type
-fn resolve_source_path(source: &Source, path: &str, manifest_dir: &Path) -> Result<std::path::PathBuf> {
+/// Resolve the source and return path + metadata
+fn resolve_source(source: &Source, path: &str, manifest_dir: &Path) -> Result<ResolvedSource> {
     match source {
         Source::Filesystem { root } => {
             let root_path = if Path::new(root).is_absolute() {
-                std::path::PathBuf::from(root)
+                PathBuf::from(root)
             } else {
                 manifest_dir.join(root)
             };
-            Ok(root_path.join(path))
+            let source_path = root_path.join(path);
+
+            Ok(ResolvedSource {
+                source_path,
+                source_display: source.display_name(),
+                git_info: None,
+                _temp_holder: None,
+            })
         }
-        Source::Git { .. } => {
-            // Git source not yet implemented (Checkpoint 9-10)
-            todo!("Git source support not yet implemented")
+        Source::Git { url, r#ref, shallow } => {
+            // Clone the repository
+            println!("Fetching from git: {}", url);
+            let resolved = clone_and_resolve(url, r#ref, *shallow)?;
+
+            // Build the path within the cloned repo
+            let source_path = resolved.repo_path.join(path);
+
+            let git_info = GitInfo {
+                resolved_ref: resolved.resolved_ref.clone(),
+                commit_sha: resolved.commit_sha.clone(),
+            };
+
+            Ok(ResolvedSource {
+                source_path,
+                source_display: source.display_name(),
+                git_info: Some(git_info),
+                _temp_holder: Some(resolved),
+            })
         }
     }
 }
@@ -181,6 +248,40 @@ fn install_asset(kind: &AssetKind, source: &Path, dest: &Path) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Validate a skills root directory - check each immediate child has SKILL.md
+fn validate_skills_root(source: &Path, strict: bool) -> Result<Vec<String>> {
+    let mut warnings = Vec::new();
+
+    // Read immediate children (each is a skill)
+    for entry in std::fs::read_dir(source)
+        .map_err(|e| ApsError::io(e, format!("Failed to read skills directory {:?}", source)))?
+    {
+        let entry = entry.map_err(|e| ApsError::io(e, "Failed to read directory entry"))?;
+        let skill_path = entry.path();
+
+        // Only check directories (skills)
+        if !skill_path.is_dir() {
+            continue;
+        }
+
+        let skill_name = entry.file_name().to_string_lossy().to_string();
+        let skill_md_path = skill_path.join("SKILL.md");
+
+        // Check for SKILL.md (case-sensitive)
+        if !skill_md_path.exists() {
+            let warning = format!("Skill '{}' is missing SKILL.md", skill_name);
+            if strict {
+                return Err(ApsError::MissingSkillMd { skill_name });
+            }
+            warnings.push(warning);
+        } else {
+            debug!("Skill '{}' has valid SKILL.md", skill_name);
+        }
+    }
+
+    Ok(warnings)
 }
 
 /// Copy a directory recursively
