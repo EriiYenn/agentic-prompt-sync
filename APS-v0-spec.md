@@ -4,6 +4,40 @@ This document defines the **v0 specification** for **APS (Agentic Prompt Sync)**
 
 ---
 
+## Implementation Status
+
+| Checkpoint | Description | Status |
+|------------|-------------|--------|
+| 0 | CLI Skeleton | ✅ Complete |
+| 1 | `aps init` | ✅ Complete |
+| 2 | Manifest Discovery & Parsing | ✅ Complete |
+| 3 | Schema Validation | ✅ Complete |
+| 4 | Filesystem Source + `agents_md` | ✅ Complete |
+| 5 | Conflict Handling | ✅ Complete |
+| 6 | Lockfile + `aps status` | ✅ Complete |
+| 7 | Directory Install (`cursor_rules`) | ⏳ Pending |
+| 8 | Skills Root Adapter | ⏳ Pending |
+| 9 | Git Source (Read-only) | ⏳ Pending |
+| 10 | Git Source Install | ⏳ Pending |
+| 11 | Polish | ⏳ Pending |
+
+### Project Structure
+
+```
+src/
+├── main.rs       # Entry point, CLI parsing, logging setup
+├── cli.rs        # Clap argument definitions for all commands
+├── commands.rs   # Command implementations (init, pull, validate, status)
+├── manifest.rs   # Manifest types, discovery, and validation
+├── lockfile.rs   # Lockfile types and I/O
+├── install.rs    # Asset installation logic
+├── backup.rs     # Backup creation for conflict handling
+├── checksum.rs   # SHA256 checksum computation
+└── error.rs      # Error types with miette diagnostics
+```
+
+---
+
 ## Tool Overview
 
 - **Tool name:** aps
@@ -225,59 +259,81 @@ Per item:
 
 Each checkpoint results in a working CLI.
 
-### Checkpoint 0 — CLI Skeleton
+### Checkpoint 0 — CLI Skeleton ✅ COMPLETE
 - `aps --help` works
-- Subcommands registered
-- `--verbose` toggles logging
+- Subcommands registered (init, pull, validate, status)
+- `--verbose` toggles logging via tracing
 
-### Checkpoint 1 — `aps init`
-- Creates manifest
-- Adds lockfile to `.gitignore`
-- Idempotent behavior
+**Implementation:** `src/main.rs`, `src/cli.rs`
 
-### Checkpoint 2 — Manifest Discovery & Parsing
-- Walk-up discovery
-- `--manifest` override
-- Clear error if missing
+### Checkpoint 1 — `aps init` ✅ COMPLETE
+- Creates `promptsync.yaml` manifest with example entry
+- Adds `.promptsync.lock` and `.aps-backups/` to `.gitignore`
+- Idempotent behavior (errors if manifest exists)
 
-### Checkpoint 3 — Schema Validation
-- Unknown kinds/sources error
-- Duplicate IDs error
+**Implementation:** `src/commands.rs::cmd_init()`
 
-### Checkpoint 4 — Filesystem Source + `agents_md`
-- Install AGENTS.md from filesystem
-- `--dry-run` support
+### Checkpoint 2 — Manifest Discovery & Parsing ✅ COMPLETE
+- Walk-up discovery from CWD to `.git` directory
+- `--manifest` override supported
+- Clear error with hint if missing: "Run `aps init` to create a manifest"
 
-### Checkpoint 5 — Conflict Handling
-- Backups created
-- Interactive overwrite prompt
-- `--yes` bypass
+**Implementation:** `src/manifest.rs::discover_manifest()`, `find_manifest_walk_up()`
 
-### Checkpoint 6 — Lockfile + `aps status`
-- Write lockfile after install
-- Display status
+### Checkpoint 3 — Schema Validation ✅ COMPLETE
+- Unknown kinds/sources validated via serde
+- Duplicate IDs error with clear diagnostic
 
-### Checkpoint 7 — Directory Install (`cursor_rules`)
+**Implementation:** `src/manifest.rs::validate_manifest()`, `src/error.rs::ApsError`
+
+### Checkpoint 4 — Filesystem Source + `agents_md` ✅ COMPLETE
+- Install AGENTS.md from filesystem sources
+- `--dry-run` shows what would happen without making changes
+- Paths resolved relative to manifest directory
+
+**Implementation:** `src/install.rs::install_entry()`, `install_asset()`
+
+### Checkpoint 5 — Conflict Handling ✅ COMPLETE
+- Backups created at `.aps-backups/<dest-path>-<YYYY-MM-DD-HHMM>/`
+- Interactive overwrite prompt via dialoguer (TTY detection)
+- `--yes` bypasses prompts in non-interactive mode
+- Non-interactive without `--yes` returns clear error
+
+**Implementation:** `src/backup.rs`, `src/install.rs`
+
+### Checkpoint 6 — Lockfile + `aps status` ✅ COMPLETE
+- Write `.promptsync.lock` after install with:
+  - source, dest, resolved_ref, commit, last_updated_at, checksum
+- SHA256 checksums enable no-op detection (idempotent pulls)
+- `aps status` displays all synced entries with formatted output
+
+**Implementation:** `src/lockfile.rs`, `src/checksum.rs`, `src/commands.rs::cmd_status()`
+
+---
+
+### Checkpoint 7 — Directory Install (`cursor_rules`) ⏳ PENDING
 - Recursive copy
 - Conflict detection
 - Checksums
 
-### Checkpoint 8 — Skills Root Adapter
+**Note:** Basic directory copy is implemented but needs cursor_rules-specific handling.
+
+### Checkpoint 8 — Skills Root Adapter ⏳ PENDING
 - Skill folder fan-out
 - `SKILL.md` warnings
 - `--strict` enforcement
 
-### Checkpoint 9 — Git Source (Read-only)
+### Checkpoint 9 — Git Source (Read-only) ⏳ PENDING
 - Clone/fetch
 - Ref auto-resolution
 - Path existence validation
 
-### Checkpoint 10 — Git Source Install
+### Checkpoint 10 — Git Source Install ⏳ PENDING
 - Install all asset kinds from git
 - Record resolved refs + commits
 - No-op pulls
 
-### Checkpoint 11 — Polish
+### Checkpoint 11 — Polish ⏳ PENDING
 - `--only` support
 - Improved UX messages
 - Interactive manifest confirmation
