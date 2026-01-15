@@ -1,1 +1,10 @@
 /target
+
+# APS (Agentic Prompt Sync)
+.aps.lock
+.aps-backups/
+aps.yaml
+
+AGENTS.md
+.cursor
+
