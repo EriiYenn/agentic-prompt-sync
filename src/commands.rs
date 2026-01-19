@@ -1,4 +1,7 @@
-use crate::cli::{InitArgs, ManifestFormat, PullArgs, StatusArgs, ValidateArgs};
+use crate::catalog::Catalog;
+use crate::cli::{
+    CatalogGenerateArgs, InitArgs, ManifestFormat, PullArgs, StatusArgs, ValidateArgs,
+};
 use crate::error::{ApsError, Result};
 use crate::install::{install_entry, InstallOptions, InstallResult};
 use crate::lockfile::{display_status, Lockfile};
@@ -355,6 +358,48 @@ pub fn cmd_status(args: StatusArgs) -> Result<()> {
 
     // Display status
     display_status(&lockfile);
+
+    Ok(())
+}
+
+/// Execute the `aps catalog generate` command
+pub fn cmd_catalog_generate(args: CatalogGenerateArgs) -> Result<()> {
+    // Discover and load manifest
+    let (manifest, manifest_path) = discover_manifest(args.manifest.as_deref())?;
+    let base_dir = manifest_dir(&manifest_path);
+
+    println!("Using manifest: {:?}", manifest_path);
+
+    // Validate manifest
+    validate_manifest(&manifest)?;
+
+    // Generate catalog
+    let catalog = Catalog::generate_from_manifest(&manifest, &base_dir)?;
+
+    // Determine output path
+    let output_path = args
+        .output
+        .unwrap_or_else(|| Catalog::path_for_manifest(&manifest_path));
+
+    // Save catalog
+    catalog.save(&output_path)?;
+
+    println!(
+        "Generated catalog with {} entries at {:?}",
+        catalog.entries.len(),
+        output_path
+    );
+
+    // Count entries with descriptions
+    let with_desc = catalog
+        .entries
+        .iter()
+        .filter(|e| e.short_description.is_some())
+        .count();
+
+    if with_desc > 0 {
+        println!("  {} entries have descriptions", with_desc);
+    }
 
     Ok(())
 }
