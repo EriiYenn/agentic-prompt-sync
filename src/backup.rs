@@ -109,27 +109,51 @@ pub fn has_conflict(dest_path: &Path) -> bool {
 fn is_aps_managed_dir(dir_path: &Path) -> bool {
     match std::fs::read_dir(dir_path) {
         Ok(entries) => {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let path = entry.path();
-                    if let Ok(meta) = path.symlink_metadata() {
-                        if meta.file_type().is_symlink() {
-                            continue;
-                        }
-                        // Found a non-symlink - check if it's a directory with only symlinks
-                        if path.is_dir() {
-                            if !is_aps_managed_dir(&path) {
-                                return false;
-                            }
-                        } else {
-                            // Found a regular file - not aps managed
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Ok(meta) = path.symlink_metadata() {
+                    if meta.file_type().is_symlink() {
+                        continue;
+                    }
+                    // Found a non-symlink - check if it's a directory with only symlinks
+                    if path.is_dir() {
+                        if !is_aps_managed_dir(&path) {
                             return false;
                         }
+                    } else {
+                        // Found a regular file - not aps managed
+                        return false;
                     }
                 }
             }
             true
         }
         Err(_) => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_is_aps_managed_dir_with_only_symlinks() {
+        let temp = tempdir().unwrap();
+        let dir = temp.path().join("test_dir");
+        fs::create_dir(&dir).unwrap();
+
+        // Create a target file and a symlink to it
+        let target = temp.path().join("target.txt");
+        fs::write(&target, "content").unwrap();
+
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&target, dir.join("link.txt")).unwrap();
+
+        #[cfg(windows)]
+        std::os::windows::fs::symlink_file(&target, dir.join("link.txt")).unwrap();
+
+        assert!(is_aps_managed_dir(&dir));
     }
 }
