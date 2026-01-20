@@ -237,6 +237,11 @@ trunk check list  # View available linters
 cargo run -- --verbose sync
 ```
 
+## Inspiration
+Built based on inspiration from these other projects,
+
+- rule-tool - https://github.com/circleci-petri/rule-tool/
+
 ## License
 
 See [LICENSE](LICENSE) for details.
