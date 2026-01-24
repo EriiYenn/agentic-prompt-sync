@@ -1,17 +1,29 @@
+<div align="center">
+
 # Agentic Prompt Sync (aps)
 
-Use `aps` to compose and sync your own custom collection of agentic prompts/skills/etc.
+**Compose and sync your own collection of AGENTS.md, Skills, and other agentic prompts.**
+
+[![CI](https://github.com/westonplatter/agentic-prompt-sync/actions/workflows/ci.yml/badge.svg)](https://github.com/westonplatter/agentic-prompt-sync/actions/workflows/ci.yml)
+[![Crates.io](https://img.shields.io/crates/v/aps?style=flat-square)](https://crates.io/crates/aps)
+[![Downloads](https://img.shields.io/crates/d/aps?style=flat-square)](https://crates.io/crates/aps)
+[![GitHub stars](https://img.shields.io/github/stars/westonplatter/agentic-prompt-sync?style=flat-square)](https://github.com/westonplatter/agentic-prompt-sync/stargazers)
+[![License](https://img.shields.io/badge/license-BSD--3--Clause-blue?style=flat-square)](LICENSE)
+
+**Cross-platform support:** macOS • Linux • Windows
 
 ![Example of running ap sync](./docs/aps-example.png)
+
+</div>
 
 ## Features
 
 `aps` is a manifest-driven, CLI tool for syncing agentic assets (Cursor rules, Agent Skills, and AGENTS.md files) from sources like git or your filesystem in your project folders.
 
 - **Declarative manifest-driven sync** - Define your agentic assets in a YAML manifest
+- **Composable AGENTS.md** - Merge multiple AGENTS.md files from local or remote sources into one
 - **Safe installs** - Automatic conflict detection and backup creation
 - **Deterministic lockfile** - Idempotent syncs that only update when needed
-- **Scriptable CLI** - Optional interactivity for CI/CD pipelines
 
 ## Installation
 
