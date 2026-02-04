@@ -70,6 +70,36 @@ cargo build --release
 # Binary at target/release/aps
 ```
 
+## Updating
+
+To update `aps` to the latest version, use the same method you used to install it.
+
+### Quick Install (macOS/Linux)
+
+Re-run the install script to download and install the latest version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/westonplatter/agentic-prompt-sync/main/install.sh | sh
+```
+
+### Download Binary
+
+Download the latest binary for your platform from the [Releases page](https://github.com/westonplatter/agentic-prompt-sync/releases) and replace your existing installation.
+
+### Cargo Update
+
+If you installed via `cargo install`:
+
+```bash
+cargo install aps
+```
+
+Cargo will automatically detect and install the newer version. If you want to force a reinstall of the same version, use:
+
+```bash
+cargo install aps --force
+```
+
 ## Getting Started
 
 ### Quick Start
@@ -82,7 +112,19 @@ aps init
 
 This creates a `aps.yaml` manifest file with an example entry.
 
-2. **Edit the manifest** to define your assets:
+2. **Add skills directly from GitHub URLs:**
+
+```bash
+# Add a skill from a GitHub URL - automatically syncs the skill
+aps add https://github.com/hashicorp/agent-skills/blob/main/terraform/module-generation/skills/refactor-module/SKILL.md
+
+# Or use the folder URL (SKILL.md is auto-detected)
+aps add https://github.com/hashicorp/agent-skills/tree/main/terraform/module-generation/skills/refactor-module
+```
+
+This parses the GitHub URL, adds an entry to `aps.yaml`, and syncs **only that skill** immediately (other entries are not affected).
+
+3. **Or manually edit the manifest** to define your assets:
 
 ```yaml
 entries:
@@ -95,13 +137,13 @@ entries:
     dest: ./AGENTS.md
 ```
 
-3. **Sync and install** your assets:
+4. **Sync and install** your assets:
 
 ```bash
 aps sync
 ```
 
-4. **Check status** of synced assets:
+5. **Check status** of synced assets:
 
 ```bash
 aps status
@@ -112,6 +154,7 @@ aps status
 | Command        | Description                                       |
 | -------------- | ------------------------------------------------- |
 | `aps init`     | Create a new manifest file and update .gitignore  |
+| `aps add`      | Add a skill from a GitHub URL and sync it         |
 | `aps sync`     | Sync all entries from manifest and install assets |
 | `aps validate` | Validate manifest schema and check sources        |
 | `aps status`   | Display last sync information from lockfile       |
@@ -120,6 +163,12 @@ aps status
 
 - `--verbose` - Enable verbose logging
 - `--manifest <path>` - Specify manifest file path (default: `aps.yaml`)
+
+### Add Options
+
+- `--id <name>` - Custom entry ID (defaults to skill folder name)
+- `--kind <type>` - Asset kind: `agent-skill`, `cursor-rules`, `cursor-skills-root`, `agents-md` (default: `agent-skill`)
+- `--no-sync` - Only add to manifest, don't sync immediately
 
 ### Sync Options
 

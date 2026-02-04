@@ -160,6 +160,10 @@ pub enum ApsError {
     #[error("Hook script not found: {path}")]
     #[diagnostic(code(aps::hooks::script_not_found))]
     HookScriptNotFound { path: PathBuf },
+
+    #[error("Invalid GitHub URL: {url}")]
+    #[diagnostic(code(aps::add::invalid_github_url), help("{reason}"))]
+    InvalidGitHubUrl { url: String, reason: String },
 }
 
 impl ApsError {

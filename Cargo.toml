@@ -1,6 +1,6 @@
 [package]
 name = "aps"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2021"
 description = "Manifest-driven CLI for syncing agentic assets"
 authors = ["APS Contributors"]
@@ -48,6 +48,9 @@ tempfile = "3"
 
 # Shell variable expansion
 shellexpand = "3"
+
+# URL parsing
+url = "2"
 
 [dev-dependencies]
 # Integration testing for CLI
