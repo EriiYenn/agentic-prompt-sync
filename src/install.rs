@@ -979,15 +979,7 @@ fn copy_directory_merge(src: &Path, dst: &Path) -> Result<()> {
                 let meta = dest_path.symlink_metadata().map_err(|e| {
                     ApsError::io(e, format!("Failed to read metadata for {:?}", dest_path))
                 })?;
-                if meta.file_type().is_symlink() {
-                    std::fs::remove_file(&dest_path).map_err(|e| {
-                        ApsError::io(e, format!("Failed to remove file {:?}", dest_path))
-                    })?;
-                } else if meta.file_type().is_dir() {
-                    std::fs::remove_dir_all(&dest_path).map_err(|e| {
-                        ApsError::io(e, format!("Failed to remove directory {:?}", dest_path))
-                    })?;
-                } else {
+                if meta.file_type().is_symlink() || meta.file_type().is_file() {
                     std::fs::remove_file(&dest_path).map_err(|e| {
                         ApsError::io(e, format!("Failed to remove file {:?}", dest_path))
                     })?;
