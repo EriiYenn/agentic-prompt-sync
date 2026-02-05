@@ -1,6 +1,4 @@
-<!-- trunk-ignore-all(markdownlint/MD033): Inline HTML used for centered header layout -->
-<!-- trunk-ignore-all(markdownlint/MD041): Heading follows centered div intentionally -->
-<div align="center">
+<div align="center"> <!-- markdownlint-disable MD033 MD041 -->
 
 # Agentic Prompt Sync (aps)
 
@@ -70,48 +68,89 @@ cargo build --release
 # Binary at target/release/aps
 ```
 
+## Updating
+
+To update `aps` to the latest version, use the same method you used to install it.
+
+### Quick Update (macOS/Linux)
+
+Re-run the install script to download and install the latest version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/westonplatter/agentic-prompt-sync/main/install.sh | sh
+```
+
+Or download the latest binary for your platform from the [Releases page](https://github.com/westonplatter/agentic-prompt-sync/releases) and replace your existing installation.
+
+### Cargo Update
+
+If you installed via `cargo install`:
+
+```bash
+cargo install aps
+```
+
+Cargo will automatically detect and install the newer version. If you want to force a reinstall of the same version, use:
+
+```bash
+cargo install aps --force
+```
+
 ## Getting Started
 
 ### Quick Start
 
 1. **Initialize a manifest** in your project:
 
-```bash
-aps init
-```
+   ```bash
+   aps init
+   ```
 
-This creates a `aps.yaml` manifest file with an example entry.
+   This creates a `aps.yaml` manifest file with an example entry.
 
-2. **Edit the manifest** to define your assets:
+2. **Add skills directly from GitHub URLs:**
 
-```yaml
-entries:
-  - id: my-agents
-    kind: agents_md
-    source:
-      type: filesystem
-      root: $HOME
-      path: personal-generic-AGENTS.md
-    dest: ./AGENTS.md
-```
+   ```bash
+   # Add a skill from a GitHub URL - automatically syncs the skill
+   aps add https://github.com/hashicorp/agent-skills/blob/main/terraform/module-generation/skills/refactor-module/SKILL.md
 
-3. **Sync and install** your assets:
+   # Or use the folder URL (SKILL.md is auto-detected)
+   aps add https://github.com/hashicorp/agent-skills/tree/main/terraform/module-generation/skills/refactor-module
+   ```
 
-```bash
-aps sync
-```
+   This parses the GitHub URL, adds an entry to `aps.yaml`, and syncs **only that skill** immediately (other entries are not affected).
 
-4. **Check status** of synced assets:
+3. **Or manually edit the manifest** to define your assets:
 
-```bash
-aps status
-```
+   ```yaml
+   entries:
+     - id: my-agents
+       kind: agents_md
+       source:
+         type: filesystem
+         root: $HOME
+         path: personal-generic-AGENTS.md
+       dest: ./AGENTS.md
+   ```
+
+4. **Sync and install** your assets:
+
+   ```bash
+   aps sync
+   ```
+
+5. **Check status** of synced assets:
+
+   ```bash
+   aps status
+   ```
 
 ## Commands
 
 | Command        | Description                                       |
 | -------------- | ------------------------------------------------- |
 | `aps init`     | Create a new manifest file and update .gitignore  |
+| `aps add`      | Add a skill from a GitHub URL and sync it         |
 | `aps sync`     | Sync all entries from manifest and install assets |
 | `aps validate` | Validate manifest schema and check sources        |
 | `aps status`   | Display last sync information from lockfile       |
@@ -120,6 +159,12 @@ aps status
 
 - `--verbose` - Enable verbose logging
 - `--manifest <path>` - Specify manifest file path (default: `aps.yaml`)
+
+### Add Options
+
+- `--id <name>` - Custom entry ID (defaults to skill folder name)
+- `--kind <type>` - Asset kind: `agent-skill`, `cursor-rules`, `cursor-skills-root`, `agents-md` (default: `agent-skill`)
+- `--no-sync` - Only add to manifest, don't sync immediately
 
 ### Sync Options
 
@@ -210,7 +255,6 @@ entries:
 | `cursor_rules`        | Directory of Cursor rules              | `./.cursor/rules/`  |
 | `cursor_hooks`        | Directory of Cursor hooks              | `./.cursor/hooks/`  |
 | `cursor_skills_root`  | Directory with skill subdirs           | `./.cursor/skills/` |
-| `claude_hooks`        | Directory of Claude hooks              | `./.claude/hooks/`  |
 | `agent_skill`         | Claude agent skill directory           | `./.claude/skills/` |
 
 ### Source Types

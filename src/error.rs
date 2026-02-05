@@ -31,7 +31,7 @@ pub enum ApsError {
     #[error("Invalid asset kind: {kind}")]
     #[diagnostic(
         code(aps::manifest::invalid_kind),
-        help("Valid kinds are: cursor_rules, cursor_hooks, cursor_skills_root, claude_hooks, agents_md, composite_agents_md, agent_skill")
+        help("Valid kinds are: cursor_rules, cursor_hooks, cursor_skills_root, agents_md, composite_agents_md, agent_skill")
     )]
     InvalidAssetKind { kind: String },
 
@@ -160,6 +160,10 @@ pub enum ApsError {
     #[error("Hook script not found: {path}")]
     #[diagnostic(code(aps::hooks::script_not_found))]
     HookScriptNotFound { path: PathBuf },
+
+    #[error("Invalid GitHub URL: {url}")]
+    #[diagnostic(code(aps::add::invalid_github_url), help("{reason}"))]
+    InvalidGitHubUrl { url: String, reason: String },
 }
 
 impl ApsError {
