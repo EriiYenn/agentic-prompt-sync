@@ -1,5 +1,53 @@
 # Changelog
 
+## [0.1.10](https://github.com/EriiYenn/agentic-prompt-sync/compare/aps-v0.1.9...aps-v0.1.10) (2026-02-05)
+
+
+### Features
+
+* Add `aps add` command for importing skills from GitHub URLs ([#57](https://github.com/EriiYenn/agentic-prompt-sync/issues/57)) ([8052e3a](https://github.com/EriiYenn/agentic-prompt-sync/commit/8052e3a321c6ce62aee5027832fdd34ef6b035dc))
+* add agent_skill asset type ([53dc611](https://github.com/EriiYenn/agentic-prompt-sync/commit/53dc611e89dedde0fce859d08ea2de396f28debe))
+* add AGENTS.md via partials from remote repos ([#53](https://github.com/EriiYenn/agentic-prompt-sync/issues/53)) ([c3b7ed2](https://github.com/EriiYenn/agentic-prompt-sync/commit/c3b7ed2155b0718976c19d764af1e67c5e5a7bc3))
+* Add stale lockfile entry cleanup during full sync ([#37](https://github.com/EriiYenn/agentic-prompt-sync/issues/37)) ([119c677](https://github.com/EriiYenn/agentic-prompt-sync/commit/119c677dfeaa79f5de3d1217f25369de11a4a798))
+* Add support for composite AGENTS.md entries ([#38](https://github.com/EriiYenn/agentic-prompt-sync/issues/38)) ([75dc0af](https://github.com/EriiYenn/agentic-prompt-sync/commit/75dc0af811ae9fd78d46d5570591c34f2d62148f))
+* ask user to approve deleting orphaned files ([#25](https://github.com/EriiYenn/agentic-prompt-sync/issues/25)) ([fe5ad51](https://github.com/EriiYenn/agentic-prompt-sync/commit/fe5ad51664997e7993c99e901089b77840194dbd))
+* better terminal UX ([#35](https://github.com/EriiYenn/agentic-prompt-sync/issues/35)) ([210a620](https://github.com/EriiYenn/agentic-prompt-sync/commit/210a620c9eda81e3e8a5780517afeb32c954499f))
+* Change "aps pull" command to "aps sync" ([#32](https://github.com/EriiYenn/agentic-prompt-sync/issues/32)) ([f43f204](https://github.com/EriiYenn/agentic-prompt-sync/commit/f43f204f8444f1a57074921fa85225fc151f93ac))
+* create symlinks at the file level, not the folder level ([bbbd59a](https://github.com/EriiYenn/agentic-prompt-sync/commit/bbbd59a09f713565470b82f878d7d1b77f1b2bc9))
+* Enable catalog generation for hook scripts ([91cb725](https://github.com/EriiYenn/agentic-prompt-sync/commit/91cb7254f86fc98141f33878fda21a663d7cc6bb))
+* generate v1 aps.catalog.yaml ([#29](https://github.com/EriiYenn/agentic-prompt-sync/issues/29)) ([476e981](https://github.com/EriiYenn/agentic-prompt-sync/commit/476e98133ac697c6fe5119b615ec92370d933d4d))
+* Implement hooks installation helpers and conflict handling ([6ea8496](https://github.com/EriiYenn/agentic-prompt-sync/commit/6ea84965ea90f0e88952764a872c5e044aedf9d1))
+* Implement hooks validation module ([8c30989](https://github.com/EriiYenn/agentic-prompt-sync/commit/8c3098994e6007f0348d0b0226aa0cbaab440ac4))
+* include list desired files, symlink by default ([9906a4d](https://github.com/EriiYenn/agentic-prompt-sync/commit/9906a4dd5dfcb34923f5d175c5ee518e5031ec7d))
+* Integrate hooks validation and installation into core logic ([9b1c1c9](https://github.com/EriiYenn/agentic-prompt-sync/commit/9b1c1c93e52812bb230af7ed089799758bfa7a4d))
+* Introduce Cursor and Claude hooks as new asset kinds ([dfc2f46](https://github.com/EriiYenn/agentic-prompt-sync/commit/dfc2f461ce7f79e9ee6c62310b87b846081eb434))
+* Lint issues ([861fc59](https://github.com/EriiYenn/agentic-prompt-sync/commit/861fc596fbc1a0dc9ec1b1cc205247ed07120b67))
+* optimize git diff checking process ([#33](https://github.com/EriiYenn/agentic-prompt-sync/issues/33)) ([088d2b4](https://github.com/EriiYenn/agentic-prompt-sync/commit/088d2b44d48f9dac46f4dc55a209326a6bb49e62))
+* **pull:** remove confirmation prompt for default manifest ([0665bb5](https://github.com/EriiYenn/agentic-prompt-sync/commit/0665bb52b4c6cf52c31e9a32a6b4f2bf45be0773)), closes [#13](https://github.com/EriiYenn/agentic-prompt-sync/issues/13)
+* Remove PR Message ([652e13e](https://github.com/EriiYenn/agentic-prompt-sync/commit/652e13e7188244651390f75d20896a1e4fb184f2))
+* Rename lockfile from aps.manifest.lock to aps.lock.yaml ([#48](https://github.com/EriiYenn/agentic-prompt-sync/issues/48)) ([437ef71](https://github.com/EriiYenn/agentic-prompt-sync/commit/437ef710d073a6d0d3514bf51401021063430d03))
+* Respect locked versions in manifest lock file (like uv.lock) ([#45](https://github.com/EriiYenn/agentic-prompt-sync/issues/45)) ([f05a4a3](https://github.com/EriiYenn/agentic-prompt-sync/commit/f05a4a314789debfcb6372d35cd91137bd0ed7c5))
+* Scope Down to Cursor Hooks ([e805d58](https://github.com/EriiYenn/agentic-prompt-sync/commit/e805d583c877e4db0ba8e13218f2502b317f89e2))
+* set up trunk. closes [#16](https://github.com/EriiYenn/agentic-prompt-sync/issues/16). ([#17](https://github.com/EriiYenn/agentic-prompt-sync/issues/17)) ([1f941a1](https://github.com/EriiYenn/agentic-prompt-sync/commit/1f941a10db9b313dd0849a853012f8bc2244f099))
+* spec out adapter pattern ([02b286f](https://github.com/EriiYenn/agentic-prompt-sync/commit/02b286fd2db5aefd10310655c4be8cc13236b183))
+* Store relative paths in lockfile for cross-machine portability ([#56](https://github.com/EriiYenn/agentic-prompt-sync/issues/56)) ([cc1dd8f](https://github.com/EriiYenn/agentic-prompt-sync/commit/cc1dd8f5a5c5414677cce0650f89520019dee0f2))
+* sync agent skills ([ed69848](https://github.com/EriiYenn/agentic-prompt-sync/commit/ed69848466288b7d5ba0898cca23892acf073740))
+* WIP PR Message ([23aa976](https://github.com/EriiYenn/agentic-prompt-sync/commit/23aa9760039314d7099b4940f15bea565918bb22))
+
+
+### Bug Fixes
+
+* Handle root-level SKILL.md files in skill_path() ([#60](https://github.com/EriiYenn/agentic-prompt-sync/issues/60)) ([42c7399](https://github.com/EriiYenn/agentic-prompt-sync/commit/42c7399f3b67c60b6886e03f25490d5a21c803c4))
+* linting ([#47](https://github.com/EriiYenn/agentic-prompt-sync/issues/47)) ([f915ab6](https://github.com/EriiYenn/agentic-prompt-sync/commit/f915ab6502c9ec6e6af7260cf1718c6399136b4b))
+* linting =&gt; add a test ([65d7188](https://github.com/EriiYenn/agentic-prompt-sync/commit/65d71887be1bd7192d70a29f65cef03b8c1e4402))
+* make lockfile committable for reproducible installations ([714386e](https://github.com/EriiYenn/agentic-prompt-sync/commit/714386ea207332362d8ace678f7b2da5fe5d82b7))
+* PR Changes ([55c9f66](https://github.com/EriiYenn/agentic-prompt-sync/commit/55c9f66b953c9928adcc6642275d17e84f64e7a3))
+* PR Changes ([642d01b](https://github.com/EriiYenn/agentic-prompt-sync/commit/642d01b1d0a94631d0422c74a9a8206ef3f70206))
+* PR Changes pt.2 ([74fe381](https://github.com/EriiYenn/agentic-prompt-sync/commit/74fe381dfec9fe4074ce90de6ac774d968f8d51c))
+* Preserve shell variables in filesystem source paths for lockfiles ([#39](https://github.com/EriiYenn/agentic-prompt-sync/issues/39)) ([65da243](https://github.com/EriiYenn/agentic-prompt-sync/commit/65da243b2cb4f3cde0a5e66504a5666587a7a214))
+* Remove Version Bump ([5dd7439](https://github.com/EriiYenn/agentic-prompt-sync/commit/5dd7439076ad403fcfc6545bd1fe6b8475aa5361))
+* trigger release-please ([#42](https://github.com/EriiYenn/agentic-prompt-sync/issues/42)) ([c5985b8](https://github.com/EriiYenn/agentic-prompt-sync/commit/c5985b813d5af2e99bc296c1914cbdde2a3b3f1e))
+
 ## [0.1.9](https://github.com/westonplatter/agentic-prompt-sync/compare/aps-v0.1.8...aps-v0.1.9) (2026-02-04)
 
 
