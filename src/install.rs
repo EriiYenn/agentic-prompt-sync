@@ -941,7 +941,10 @@ fn copy_directory(src: &Path, dst: &Path) -> Result<()> {
     Ok(())
 }
 
-/// Recursively copy a directory without deleting existing destination content.
+/// Recursively copy a directory as an overlay.
+///
+/// Overwrites destination entries that conflict with source entries while
+/// preserving other destination content.
 fn copy_directory_merge(src: &Path, dst: &Path) -> Result<()> {
     // Normalize paths to handle trailing slashes
     let src = normalize_path(src);
